@@ -4368,11 +4368,11 @@ def pull_mqtt(use_base64=True):
 
     conn_rc = 0
     conn_flag = False
-    def on_connect(client, userdata, flags, rc):
+    def on_connect(client, userdata, flags, reason_code, properties):
         nonlocal conn_rc
         nonlocal conn_flag
 
-        conn_rc = rc
+        conn_rc = reason_code
         conn_flag = True
 
     def wait_for_connect():
@@ -4386,7 +4386,7 @@ def pull_mqtt(use_base64=True):
         return 0 != timeout
 
 
-    client = mqtt.Client()
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
     client.on_connect = on_connect
     client.on_message = on_message
     if SSL_MODULE:
@@ -4480,7 +4480,7 @@ def push_mqtt(encode_cfg, use_base64=True):
     file_chunk_size = MQTT_MESSAGE_MAX_SIZE         # Tasmota MQTT max message size
 
     # The callback for when subscribe message is received
-    def on_message(client, userdata, msg):
+    def on_message(client, userdata, message):
         nonlocal ack_flag
         nonlocal err_flag
         nonlocal err_str
@@ -4491,7 +4491,7 @@ def push_mqtt(encode_cfg, use_base64=True):
         rcv_id = 0
 
         try:
-            root = json.loads(msg.payload.decode(STR_CODING))
+            root = json.loads(message.payload.decode(STR_CODING))
             if root:
                 if "FileUpload" in root:
                     rcv_code = root["FileUpload"]
